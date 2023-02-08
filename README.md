@@ -48,8 +48,16 @@ await box.store(42)
 await box.retrieve()
 ```
 
-6. Deploy to Goerli testnet and verify contract
+6. Deploy testnet and verify contract
+
+Deploy to polygon_mumbai
 
 ```bash
 hardhat run scripts/deploy-pet.ts --network polygon_mumbai
+```
+
+Deploy to goerli
+
+```bash
+hardhat run scripts/deploy-pet.ts --network goerli
 ```

@@ -6,7 +6,7 @@ import "hardhat-gas-reporter";
 require("dotenv").config();
 
 const {
-  PRIVATE_KEY: GOERLI_PRIVATE_KEY,
+  PRIVATE_KEY,
   ETHERSCAN_API_KEY,
   POLYGONSCAN_API_KEY,
   ALCHEMY_MUMBAI_URL,
@@ -29,11 +29,11 @@ const config: HardhatUserConfig = {
     hardhat: {},
     goerli: {
       url: ALCHEMY_GOERLI_URL,
-      accounts: [GOERLI_PRIVATE_KEY!],
+      accounts: [PRIVATE_KEY!],
     },
     polygon_mumbai: {
       url: ALCHEMY_MUMBAI_URL,
-      accounts: [GOERLI_PRIVATE_KEY!],
+      accounts: [PRIVATE_KEY!],
     },
   },
   etherscan: {
