@@ -1,0 +1,26 @@
+{
+  "name": "hardhat-template",
+  "version": "1.0.0",
+  "description": "Repository containing code snippets relevant to web3, javascript and cryptography",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YeeeeeHan/HARDHAT-TEMPLATE.git"
+  },
+  "author": "",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
+    "@openzeppelin/hardhat-upgrades": "^1.22.0",
+    "hardhat": "^2.12.6",
+    "hardhat-gas-reporter": "^1.0.9",
+    "mocha": "^10.2.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.1",
+    "@openzeppelin/contracts-upgradeable": "^4.8.1",
+    "dotenv": "^16.0.3"
+  }
+}
