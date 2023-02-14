@@ -5,15 +5,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract Frg is ERC20Burnable, Ownable {
+contract Frg is ERC20, ERC20Burnable, ERC20Permit, Ownable {
     using SafeMath for uint256;
 
     // mapping(address => bool) controllers;
     uint256 public constant MAXIMUMSUPPLY = 10_000_000 * 10 ** 18;
 
-    constructor() ERC20("FRG Token", "FRG") {
+    constructor() ERC20("FRG Token", "FRG") ERC20Permit("FRG Token") {
         _mint(msg.sender, 7_000_000 * 10 ** 18);
     }
 

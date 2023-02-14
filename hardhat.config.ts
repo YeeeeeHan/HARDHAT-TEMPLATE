@@ -48,7 +48,6 @@ const config: HardhatUserConfig = {
       polygonMumbai: POLYGONSCAN_API_KEY!,
     },
   },
-  paths: { tests: "tests" },
   // gasReporter: {
   // 	enabled: false,
   // },

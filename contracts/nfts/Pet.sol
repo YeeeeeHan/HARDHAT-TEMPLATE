@@ -1,42 +1,35 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-error NonTransferable();
-
-contract Pet is
-    ERC721,
-    ERC721Enumerable,
-    ERC721URIStorage,
-    ERC721Burnable,
-    AccessControl
-{
+contract Pet is ERC721Enumerable, ERC721URIStorage, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
+    IERC20 public frgTokenAddress;
+    uint256 public rate = 100 * 10 ** 10; // FRG tokens required per mint
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     Counters.Counter private _tokenIdCounter;
 
-    constructor() ERC721("Pet", "PET") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
+    constructor(address _frgTokenAddress) ERC721("Pet", "PET") {
+        frgTokenAddress = IERC20(_frgTokenAddress);
     }
 
-    function safeMint(
-        address to,
-        string memory uri
-    ) public onlyRole(MINTER_ROLE) {
+    function safeMint(string memory uri) public {
+        frgTokenAddress.transferFrom(msg.sender, address(this), rate);
         uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
+        _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, uri);
+
+        // Increment token ID once token is minted
+        _tokenIdCounter.increment();
     }
 
+    // The following functions are overrides required by Solidity.
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -44,14 +37,7 @@ contract Pet is
         uint256 batchSize
     ) internal virtual override(ERC721, ERC721Enumerable) {
         super._beforeTokenTransfer(from, to, amount, batchSize);
-        // During mints, from == address(0)
-        // During burns, to == address(0)
-        // Other than the above two conditions,
-        // Transfers should not be allowed
-        if (from != address(0) && to != address(0)) revert NonTransferable();
     }
-
-    // The following functions are overrides required by Solidity.
 
     function _burn(
         uint256 tokenId
@@ -67,12 +53,7 @@ contract Pet is
 
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        override(ERC721, ERC721Enumerable, AccessControl)
-        returns (bool)
-    {
+    ) public view override(ERC721, ERC721Enumerable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
