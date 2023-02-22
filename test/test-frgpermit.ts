@@ -2,8 +2,15 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { Frg } from "../typechain-types/contracts/erc20tokens/Frg";
-import { Frg__factory } from "../typechain-types/factories/contracts/erc20tokens/Frg__factory";
+import { Frg, Frg__factory } from "../typechain-types";
+import { Wallet, Contract, BigNumberish, constants } from "ethers";
+
+const ownerInitialMint = (7_000_000 * 10 ** 18).toLocaleString("fullwide", {
+  useGrouping: false,
+});
+const maxSupply = (10_000_000 * 10 ** 18).toLocaleString("fullwide", {
+  useGrouping: false,
+});
 
 describe("Token frgContract", function () {
   async function deployContractFixture(): Promise<{
@@ -30,20 +37,12 @@ describe("Token frgContract", function () {
     it("Should assign the 7_000_000 tokens to the owner", async function () {
       const { frgContract, owner } = await loadFixture(deployContractFixture);
       const ownerBalance = await frgContract.balanceOf(owner.address);
-      expect(ownerBalance.toString()).to.equal(
-        (7_000_000 * 10 ** 18).toLocaleString("fullwide", {
-          useGrouping: false,
-        })
-      );
+      expect(ownerBalance.toString()).to.equal(ownerInitialMint);
     });
 
     it("Should have the correct MAXIMUMSUPPLY of 10_000_000", async function () {
       const { frgContract } = await loadFixture(deployContractFixture);
-      expect(await frgContract.MAXIMUMSUPPLY()).to.equal(
-        (10_000_000 * 10 ** 18).toLocaleString("fullwide", {
-          useGrouping: false,
-        })
-      );
+      expect(await frgContract.MAXIMUMSUPPLY()).to.equal(maxSupply);
     });
 
     it("Tokensupply should equal owner balance", async function () {
@@ -113,4 +112,145 @@ describe("Token frgContract", function () {
       expect(addr1Balance).to.equal(TRANSFER_AMOUNT);
     });
   });
+
+  describe("ERC20Permit - Permit()", function () {
+    it("Permit should work", async function () {
+      const { frgContract, owner, addr1 } = await loadFixture(
+        deployContractFixture
+      );
+
+      // Initial allowance should be 0
+      expect(
+        await frgContract.allowance(owner.address, addr1.address)
+      ).to.equal(0);
+
+      const allowance = 10000;
+      const deadline = ethers.constants.MaxUint256;
+
+      // Offchain signing
+      const { v, r, s } = await GetPermitSignature(
+        owner,
+        frgContract,
+        addr1.address,
+        allowance,
+        deadline
+      );
+
+      // Calling onchain verification and approval
+      frgContract.permit(
+        owner.address,
+        addr1.address,
+        allowance,
+        deadline,
+        v,
+        r,
+        s
+      );
+
+      // Allowance should increase
+      expect(
+        await frgContract.allowance(owner.address, addr1.address)
+      ).to.equal(allowance);
+    });
+
+    it("Permit should allow subsequent transferFrom()", async function () {
+      const { frgContract, owner, addr1 } = await loadFixture(
+        deployContractFixture
+      );
+      const allowance = 10000;
+      const deadline = ethers.constants.MaxUint256;
+
+      // Offchain signing
+      const { v, r, s } = await GetPermitSignature(
+        owner,
+        frgContract,
+        addr1.address,
+        allowance,
+        deadline
+      );
+
+      // Calling onchain verification and approval
+      frgContract.permit(
+        owner.address,
+        addr1.address,
+        allowance,
+        deadline,
+        v,
+        r,
+        s
+      );
+
+      // Prevent transfer when transfer > allowance
+      await expect(
+        frgContract
+          .connect(addr1)
+          .transferFrom(owner.address, addr1.address, allowance + 1)
+      ).to.be.revertedWith("ERC20: insufficient allowance");
+
+      // Allow transfer when transfer <= allowance
+      await expect(
+        frgContract
+          .connect(addr1)
+          .transferFrom(owner.address, addr1.address, allowance)
+      ).not.to.be.revertedWith("ERC20: insufficient allowance");
+
+      // Successful transferFrom
+      expect(await frgContract.balanceOf(addr1.address)).to.equal(allowance);
+    });
+  });
 });
+
+export async function GetPermitSignature(
+  owner: SignerWithAddress,
+  token: Frg,
+  spender: string,
+  value: BigNumberish = constants.MaxUint256,
+  deadline = constants.MaxUint256
+) {
+  const nonce = await token.nonces(owner.address);
+  const name = await token.name();
+  const version = "1";
+  const chainId = await owner.getChainId();
+
+  const domain = {
+    name,
+    version,
+    chainId,
+    verifyingContract: token.address,
+  };
+  const types = {
+    Permit: [
+      {
+        name: "owner",
+        type: "address",
+      },
+      {
+        name: "spender",
+        type: "address",
+      },
+      {
+        name: "value",
+        type: "uint256",
+      },
+      {
+        name: "nonce",
+        type: "uint256",
+      },
+      {
+        name: "deadline",
+        type: "uint256",
+      },
+    ],
+  };
+  const val = {
+    owner: owner.address,
+    spender,
+    value,
+    nonce,
+    deadline,
+  };
+
+  return ethers.utils.splitSignature(
+    await owner._signTypedData(domain, types, val)
+  );
+}
