@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Frg is ERC20, ERC20Burnable, Ownable, ERC20Permit {
     using SafeMath for uint256;
-
     // mapping(address => bool) controllers;
     uint256 public constant MAXIMUMSUPPLY = 10_000_000 * 10 ** 18;
     bytes32 private constant _PERMIT_TYPEHASH =
@@ -28,10 +27,6 @@ contract Frg is ERC20, ERC20Burnable, Ownable, ERC20Permit {
             "Minting would exceed total supply"
         );
         _mint(to, amount);
-    }
-
-    function totalSupply() public view override returns (uint256) {
-        return super.totalSupply();
     }
 
     function testPermit(

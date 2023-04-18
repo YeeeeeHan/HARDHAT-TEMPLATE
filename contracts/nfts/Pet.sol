@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 import "../erc20tokens/Frg.sol";
 import "hardhat/console.sol";
@@ -23,6 +22,7 @@ contract Pet is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
         frgTokenAddress = Frg(_frgTokenAddress);
     }
 
+    // Safe mint
     function safeMint(string memory uri, address minter) public onlyOwner {
         // Burn Frg as the cost for minting
         frgTokenAddress.burnFrom(minter, rate);
@@ -34,7 +34,8 @@ contract Pet is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable {
         _setTokenURI(tokenId, uri);
     }
 
-    function safeMintWithBurnFrg(
+    // SafeMint with permit
+    function safeMintWithPermit(
         string memory uri,
         uint256 deadline,
         uint8 v,

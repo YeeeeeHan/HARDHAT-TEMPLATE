@@ -1,19 +1,16 @@
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { Frg__factory, Frg, Pet, Pet__factory } from "../typechain-types";
+import { Frg, Frg__factory, Pet, Pet__factory } from "../typechain-types";
 import { GetPermitSignature } from "./test-frg";
-import { Contract } from "ethers";
 
 const name = "Pet";
 const symbol = "PET";
-const rate = (100 * 10 ** 18).toLocaleString("fullwide", {
+const rate = (10 * 10 ** 18).toLocaleString("fullwide", {
   useGrouping: false,
 });
 const url = "https://www.jsonkeeper.com/b/C19T";
-const firstTokenId = 0;
-const secondTokenId = 1;
 
 describe("Pet NFT", function () {
   // Deploys Pet NFT contract
@@ -36,7 +33,6 @@ describe("Pet NFT", function () {
     );
     const [owner, addr1, addr2]: SignerWithAddress[] =
       await ethers.getSigners();
-    // TODO: solve typescript address issue
     console.log("deployed frgContract to ", frgContract.address);
     const petContract = await contractFactory.deploy(frgContract.address);
     await petContract.deployed();
@@ -111,7 +107,7 @@ describe("Pet NFT", function () {
       await expect(
         petContract
           .connect(addr1)
-          .safeMintWithBurnFrg(url, ethers.constants.MaxUint256, v, r, s)
+          .safeMintWithPermit(url, ethers.constants.MaxUint256, v, r, s)
       ).to.be.revertedWithCustomError(petContract, "InsufficientFrgBalance");
     });
 
@@ -139,7 +135,7 @@ describe("Pet NFT", function () {
       // Minting
       await petContract
         .connect(addr1)
-        .safeMintWithBurnFrg(url, ethers.constants.MaxUint256, v, r, s);
+        .safeMintWithPermit(url, ethers.constants.MaxUint256, v, r, s);
 
       // NFT balance should increase to 1
       expect(await petContract.balanceOf(addr1.address)).to.be.equal(1);
@@ -147,33 +143,5 @@ describe("Pet NFT", function () {
       // Frg token balance should decrease by rate
       expect(await frgContract.balanceOf(addr1.address)).to.be.equal(0);
     });
-
-    // it("should return correct balanceOf after minting tokens", async function () {
-    //   const { petContract, owner } = await loadFixture(
-    //     deployPetContractFixture
-    //   );
-
-    //   await petContract.safeMintWithBurnFrg(url);
-    //   await petContract.safeMintWithBurnFrg(url);
-
-    //   expect(await petContract.balanceOf(owner.address)).to.equal(2);
-    // });
-
-    // it("should revert for a zero address", async function () {
-    //   const { petContract, owner } = await loadFixture(
-    //     deployPetContractFixture
-    //   );
-    //   await expect(petContract.balanceOf(ZERO_ADDRESS)).to.be.revertedWith(
-    //     "ERC721: address zero is not a valid owner"
-    //   );
-    // });
-
-    // it("should return the correct uri", async function () {
-    //   const { petContract } = await loadFixture(deployPetContractFixture);
-
-    //   await petContract.safeMintWithBurnFrg(url);
-
-    //   expect(await petContract.tokenURI(firstTokenId)).to.equal(url);
-    // });
   });
 });

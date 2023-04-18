@@ -19,7 +19,7 @@ async function deployAll() {
   const PetContract = await Pet.deploy(FrgContract.address);
   await PetContract.deployTransaction.wait(5);
   console.log(
-    `\x1b[32m [PET CONTRACT] Contract deployed to ${PetContract.address}  \x1b[0m`
+    `\x1b[32m[PET CONTRACT] Contract deployed to ${PetContract.address}  \x1b[0m`
   );
   await verify(
     PetContract.address,

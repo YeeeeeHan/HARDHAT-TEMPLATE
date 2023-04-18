@@ -1,9 +1,9 @@
-import { expect } from "chai";
-import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { expect } from "chai";
+import { BigNumberish, constants } from "ethers";
+import { ethers } from "hardhat";
 import { Frg, Frg__factory } from "../typechain-types";
-import { Wallet, Contract, BigNumberish, constants } from "ethers";
 
 const ownerInitialMint = (7_000_000 * 10 ** 18).toLocaleString("fullwide", {
   useGrouping: false,
