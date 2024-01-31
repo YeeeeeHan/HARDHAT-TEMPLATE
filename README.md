@@ -32,7 +32,7 @@ Template code for hardhat, allowing user to develop, test and deploy smart contr
 5. (In separate console) Deploy to local node
 
    ```sh
-   npx hardhat run scripts/deploy.js --network localhost
+   npx hardhat run scripts/deploy-box.ts --network localhost
    ```
 
 6. Testing in console
